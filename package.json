@@ -1,0 +1,23 @@
+{
+  "name": "workflow-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "author": "Daniel Bulger",
+  "license": "ISC",
+  "scripts": {
+    "serve": "NODE_ENV=dev vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "vue": "^2.6.12",
+    "vuex": "^3.6.2",
+    "vue-router": "^3.5.1"
+  },
+  "devDependencies": {
+    "@vue/cli": "^4.5.11",
+    "@vue/cli-plugin-babel": "^4.5.11",
+    "@vue/cli-service": "^4.5.11",
+    "vue-template-compiler": "^2.6.12"
+  }
+}
