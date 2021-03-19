@@ -3,19 +3,22 @@
        @mousemove.prevent.stop="moveSelectedNode"
        @mouseup.prevent.stop="resetSelectedNode"
   >
-    <node v-for="(node, nodeId) in nodes" :id="nodeId" :key="nodeId"/>
+    <edge-list/>
+    <node-list/>
   </div>
 
 </template>
 
 <script>
 
-import Node from '@/node/Node.vue';
+import NodeList from '@/node/NodeList.vue';
+import EdgeList from '@/edge/EdgeList.vue';
 
 export default {
   name: 'Editor',
   components: {
-    Node,
+    NodeList,
+    EdgeList,
   },
   props: [
     'id',
@@ -23,15 +26,7 @@ export default {
   data() {
     return {};
   },
-  computed: {
-    /**
-     * Get all the registered Node.
-     * @return {Object} The Node data.
-     */
-    nodes() {
-      return this.$store.getters['nodes/getNodes']();
-    },
-  },
+  computed: {},
   methods: {
     /**
      * Move the selected node if one exists, by the current mouse event.
@@ -40,19 +35,19 @@ export default {
     moveSelectedNode(event) {
       if (this.$store.getters['editor/hasSelectedNode']()) {
         const selectedNode = this.$store.getters['editor/getSelectedNode']();
-        const offset = this.$store.getters['editor/getSelectedNodeMovementOffset']();
+        const nodeOffset = this.$store.getters['editor/getSelectedNodeMovementOffset']();
 
         this.$store.commit('nodes/move', {
           id: selectedNode,
           position: {
-            x: event.clientX + offset.x,
-            y: event.clientY + offset.y,
+            x: event.clientX + nodeOffset.x,
+            y: event.clientY + nodeOffset.y,
           },
         });
       }
     },
     /**
-     * Reset the selected node once the mouse has been unclicked.
+     * Reset the selected node once the mouse has been released.
      * @param event The mouse click data.
      */
     resetSelectedNode(event) {

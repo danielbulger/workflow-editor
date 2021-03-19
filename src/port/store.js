@@ -12,14 +12,26 @@ const state = {
       name: 'False',
       type: 'Boolean',
     },
+    4: {
+      name: 'Input',
+      type: 'Boolean',
+    },
+    5: {
+      name: 'True',
+      type: 'Boolean',
+    },
+    6: {
+      name: 'False',
+      type: 'Boolean',
+    },
   },
 };
 
 const getters = {
   /**
    * Get all the registered Ports
-   * @param {Object<String|Object>} state
-   * @return {Object<Number|Object>}
+   * @param {Object<string|Object>} state
+   * @return {function(): Object<number|Object>}
    */
   getPorts: (state) => () => {
     return state.ports;
@@ -27,8 +39,8 @@ const getters = {
   /**
    * Get a specific port by the given id. If a port with the id does not exist
    * this will return undefined.
-   * @param {Object<String|Object>} state
-   * @return {Object|undefined}
+   * @param {Object<string|Object>} state
+   * @return {function(number): Object|undefined}
    */
   getPortById: (state) => (id) => {
     return state.ports[id];
@@ -37,7 +49,25 @@ const getters = {
 
 const actions = {};
 
-const mutations = {};
+const mutations = {
+  /**
+   *
+   * @param state
+   * @param payload
+   */
+  setPosition(state, payload) {
+    state.ports = {
+      ...state.ports,
+      [payload.id]: {
+        ...state.ports[payload.id],
+        position: {
+          x: payload.position.x,
+          y: payload.position.y,
+        }
+      }
+    }
+  },
+};
 
 export default {
   namespaced: true,

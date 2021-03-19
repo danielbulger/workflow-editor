@@ -10,7 +10,7 @@ const routes = publicRoutes.concat(privateRoutes);
 const router = new VueRouter({
   mode: 'history',
   linkActiveClass: 'active',
-  routes: routes
+  routes: routes,
 });
 
 export default router;
