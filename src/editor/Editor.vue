@@ -1,8 +1,10 @@
 <template>
   <div id="editor"
+       tabindex="-1"
        @mousemove.prevent.stop="moveSelectedNode"
        @mouseup.prevent.stop="resetSelectedNode"
-  >
+       @click.self.prevent.stop="clearSelections"
+       @keydown.self.prevent.stop="handleKeyInput">
     <edge-list/>
     <node-list/>
   </div>
@@ -28,6 +30,28 @@ export default {
   },
   computed: {},
   methods: {
+
+    /**
+     * Try to delete the currently selected edge, if one exists.
+     */
+    deleteSelectedEdge() {
+      if (this.$store.getters['editor/hasSelectedEdge']()) {
+        this.$store.dispatch('edges/delete', this.$store.getters['editor/getSelectedEdge']());
+      }
+    },
+
+    /**
+     * Handle a key press from the user.
+     * @param {KeyboardEvent} event
+     */
+    handleKeyInput(event) {
+      switch (event.key) {
+        case 'Delete':
+        case 'Backspace':
+          this.deleteSelectedEdge();
+          break;
+      }
+    },
     /**
      * Move the selected node if one exists, by the current mouse event.
      * @param event The mouse move data.
@@ -54,6 +78,10 @@ export default {
       if (this.$store.getters['editor/hasSelectedNode']()) {
         this.$store.commit('editor/clearSelectedNode');
       }
+    },
+
+    clearSelections(event) {
+      this.$store.commit('editor/clearSelections');
     },
   },
 };

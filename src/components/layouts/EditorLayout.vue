@@ -20,6 +20,6 @@ export default {
   height: 100vh;
   margin: 0;
   padding: 0;
-  background-color: var(--background-color);
+  background-color: var(--page-background-color);
 }
 </style>

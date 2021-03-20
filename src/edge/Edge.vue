@@ -1,27 +1,33 @@
 <template>
-  <div class="edge" v-if="toPosition !== undefined && fromPosition !== undefined" :style="this.computeStyle">
+  <div class="edge"
+       v-if="toPosition !== undefined && fromPosition !== undefined"
+       :style="this.computeStyle"
+       :class="{selected: selected}"
+       @click.prevent.stop="notifySelected">
+
     <svg xmlns="http://www.w3.org/2000/svg" :width="this.width" :height="this.height">
       <line :x1="this.x1"
             :y1="this.y1"
             :x2="this.x2"
-            :y2="this.y2"
-            stroke-width="5"
-            stroke="white"/>
+            :y2="this.y2"/>
     </svg>
   </div>
 </template>
 
 <script>
-
 export default {
   name: 'Edge',
-  components: {},
   props: [
     'id',
   ],
   data() {
     return {
       edge: this.$store.getters['edges/getEdgeById'](this.id),
+      deleteMenu: {
+        visible: false,
+        x: -1,
+        y: -1,
+      },
     };
   },
   methods: {
@@ -33,6 +39,21 @@ export default {
      */
     compare(func, axis) {
       return func(this.fromPosition[axis], this.toPosition[axis]);
+    },
+
+    /**
+     * Notify that the edge has been clicked
+     * @param {MouseEvent} event
+     */
+    notifySelected(event) {
+      // If it was already selected clear it
+      if (this.selected) {
+        this.$store.commit('editor/clearSelections');
+      } else {
+        this.$store.commit('editor/setSelectedEdge', {
+          id: this.id,
+        });
+      }
     },
   },
   computed: {
@@ -145,6 +166,14 @@ export default {
     toPosition() {
       return this.$store.getters['ports/getPortById'](this.edge.to).position;
     },
+
+    /**
+     * Gets whether this edge is the currently selected one or not.
+     * @return {boolean}
+     */
+    selected() {
+      return this.$store.getters['editor/isSelectedEdge'](this.id);
+    },
   },
 };
 </script>
@@ -153,5 +182,16 @@ export default {
 .edge {
   position: absolute;
   z-index: var(--edge-layer);
+  cursor: pointer;
 }
+
+.edge > svg > line {
+  stroke-width: 0.5rem;
+  stroke: var(--text-colour);
+}
+
+.edge.selected > svg > line {
+  stroke: var(--visual-variant4);
+}
+
 </style>

@@ -1,15 +1,22 @@
 <template>
   <div class="port"
-       :class="[{selected: selected, matchType: matchPortType}, direction]"
-       @click.prevent.stop="selectPort">
-    <div class="name">{{ this.port.name }}</div>
-    <div class="connection-point"></div>
+       :class="[{selected: selected, matchType: matchPortType}, direction]">
+    <w-text>{{ this.port.name }}</w-text>
+    <div class="connection-point"
+         @click.prevent.stop="selectPort"
+         @mousedown.prevent.stop></div>
   </div>
 </template>
 
 <script>
+
+import WText from '@/components/WText.vue';
+
 export default {
   name: 'Port',
+  components: {
+    WText,
+  },
   props: [
     'id',
     'parentId',
@@ -35,12 +42,18 @@ export default {
       const anchorPoint = this.$el.querySelector('.connection-point');
       const position = anchorPoint.getBoundingClientRect();
 
+      let offsetX = 0;
+
+      if (this.direction === 'outgoing') {
+        offsetX = anchorPoint.clientWidth;
+      }
+
       this.$store.commit('ports/setPosition', {
         id: this.id,
         position: {
+          x: position.left + offsetX,
           // Make sure the we are referencing the center of the anchor point.
-          x: position.left + (anchorPoint.clientWidth / 2),
-          y: position.top + (anchorPoint.clientHeight / 2),
+          y: position.top + anchorPoint.clientHeight / 2,
         },
       });
     },
@@ -68,7 +81,14 @@ export default {
      * @return {boolean}
      */
     isJoinable() {
-      return this.direction !== 'outgoing';
+      return this.direction !== 'outgoing' && this.matchPortType;
+    },
+
+    createEdge() {
+      this.$store.dispatch('edges/create', {
+        from: this.$store.getters['editor/getSelectedPort'](),
+        to: this.id,
+      });
     },
 
     /**
@@ -84,7 +104,7 @@ export default {
           this.clearSelectedPort();
         } else {
           if (this.isJoinable()) {
-            //
+            this.createEdge();
           } else {
             this.makeSelectedPort();
           }
@@ -115,7 +135,12 @@ export default {
      * @return {boolean}
      */
     matchPortType() {
-      return this.direction === 'incoming' && this.$store.getters['editor/getSelectedPortType']() === this.port.type;
+      return this.direction === 'incoming' && this.$store.getters['editor/isSelectedPortType'](this.port.type) &&
+          // We can't join two ports if the have the same parent
+          !this.$store.getters['ports/isSibling'](
+              this.id,
+              this.$store.getters['editor/getSelectedPort'](),
+          );
     },
   },
   watch: {
@@ -134,7 +159,6 @@ export default {
   width: 100%;
   display: inline-flex;
   align-items: center;
-  font-size: var(--port-name-size);
 }
 
 .port.incoming {
@@ -150,18 +174,18 @@ export default {
 .port > .connection-point {
   width: var(--port-size);
   height: var(--port-size);
-  background: var(--port-background-colour);
-  border: var(--port-border-size) solid black;
+  background: var(--text-colour);
+  border: var(--port-border-size) solid var(--background-light-shade);
   border-radius: 50%;
   cursor: crosshair;
 }
 
 .port.selected > .connection-point {
-  background-color: var(--port-selected-background-colour);
+  background-color: var(--visual-variant8);
 }
 
 .port.matchType > .connection-point {
-  background-color: var(--port-match-type-background-colour);
+  background-color: var(--visual-variant1);
 }
 
 </style>

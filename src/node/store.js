@@ -26,7 +26,7 @@ const state = {
 const getters = {
   /**
    * Get all the registered Nodes
-   * @param {Object<string|Object>} state
+   * @param {Object} state
    * @return {function(): Object<number|Object>}
    */
   getNodes: (state) => () => {
@@ -35,13 +35,18 @@ const getters = {
   /**
    * Get a specific Node by the given id. If a Node with the id does not exist
    * this will return undefined.
-   * @param {Object<string|Object>} state
+   * @param {Object} state
    * @return {function(string): Object|undefined}
    */
   getNodeById: (state) => (id) => {
     return state.nodes[id];
   },
 
+  /**
+   * 
+   * @param state
+   * @return {function(*): *}
+   */
   getNodePosition: (state) => (id) => {
     return state.nodes[id].position;
   },
@@ -50,7 +55,7 @@ const getters = {
 const mutations = {
   /**
    * Move the position of a Node within the editor.
-   * @param {Object<string|Object>} state
+   * @param {Object} state
    * @param {{id: string, position: {x: number, y: number}}} payload
    */
   move(state, payload) {

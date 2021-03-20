@@ -1,10 +1,10 @@
 <template>
   <div class="node"
        :style="{  left: `${this.node.position.x}px`, top: `${this.node.position.y}px`  }"
-       @mousedown.prevent.stop="notifySelected"
-       @contextmenu.prevent.stop="onContextMenu"
-  >
-    <div class="name-container">{{ this.node.name }}</div>
+       @mousedown.stop="notifySelected">
+    <div class="name-container">
+      <w-text align="center">{{ this.node.name }}</w-text>
+    </div>
 
     <div class="port-container">
       <div class="input-ports">
@@ -28,12 +28,14 @@
 
 <script>
 
+import WText from '@/components/WText.vue';
 import Port from '@/port/Port.vue';
 
 export default {
   name: 'Node.vue',
   components: {
     Port,
+    WText,
   },
   props: [
     'id',
@@ -45,8 +47,6 @@ export default {
   },
   computed: {},
   methods: {
-    onContextMenu: function(event) {
-    },
     /**
      * Notify the store that the node has been selected by the user.
      * @param {MouseEvent} event The mouse-client event
@@ -67,8 +67,8 @@ export default {
 <style scoped>
 .node {
   position: absolute;
-  color: var(--primary-text-colour);
-  background-color: var(--primary-background-color);
+  color: var(--text-colour);
+  background-color: var(--background-lighest-shade);
   width: var(--node-width);
   z-index: var(--node-layer);
 
@@ -77,10 +77,7 @@ export default {
 }
 
 .name-container {
-  font-weight: bold;
-  text-align: center;
   background-color: var(--primary-colour);
-  font-size: var(--node-heading-size);
 }
 
 .port-container {
