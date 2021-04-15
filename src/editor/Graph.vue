@@ -35,8 +35,9 @@ export default {
 
   data() {
     return {
-      x: -100,
+      x: 0,
       y: 0,
+      scale: 1
     };
   },
 
@@ -74,14 +75,9 @@ export default {
         }
       }
 
-      this.$store.commit('editor/setScale', {
-        scale: newScale,
-      });
-
-      this.$store.commit('editor/setPosition', {
-        x: event.clientX - diffX * this.scale,
-        y: event.clientY - diffY * this.scale,
-      });
+      this.scale = newScale;
+      this.x = event.clientX - diffX * newScale;
+      this.y = event.clientY - diffY * newScale;
     },
 
     /**
@@ -143,14 +139,6 @@ export default {
 
   computed: {
 
-    scale() {
-      return this.$store.getters['editor/getScale']();
-    },
-
-    position() {
-      return this.$store.getters['editor/getPosition']();
-    },
-
     /**
      * Get all the registered Node.
      * @return {Object} The Node data.
@@ -167,7 +155,7 @@ export default {
     },
 
     transform() {
-      return `translate(${this.position.x}, ${this.position.y}) scale(${this.scale})`;
+      return `translate(${this.x}, ${this.y}) scale(${this.scale})`;
     },
   },
 };
