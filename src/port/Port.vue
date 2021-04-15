@@ -1,31 +1,46 @@
 <template>
-  <div class="port"
-       :class="[{selected: selected, matchType: matchPortType}, direction]">
-    <w-text>{{ this.port.name }}</w-text>
-    <div class="connection-point"
-         @click.prevent.stop="selectPort"
-         @mousedown.prevent.stop></div>
-  </div>
+
+  <svg :width="width" :height="height" :class="[{selected: selected, matchType: matchPortType}, direction]">
+    <g v-if="direction === 'incoming'">
+      <circle :r="radius" :cx="radius" :cy="radius"
+              @click.prevent.stop="selectPort"
+              @mousedown.prevent.stop></circle>
+      <text x="30" y="18">
+        <tspan>{{ this.port.name }}</tspan>
+      </text>
+    </g>
+
+    <g v-else>
+      <circle :r="radius" :cx="width - radius" :cy="radius"
+              @click.prevent.stop="selectPort"
+              @mousedown.prevent.stop
+      ></circle>
+      <text x="70" y="18" text-anchor="end">
+        <tspan>{{ this.port.name }}</tspan>
+      </text>
+    </g>
+  </svg>
+
 </template>
 
 <script>
 
-import WText from '@/components/WText.vue';
-
 export default {
   name: 'Port',
-  components: {
-    WText,
-  },
+  components: {},
   props: [
     'id',
     'parentId',
     'direction',
+    'position'
   ],
   data() {
     return {
       port: this.$store.getters['ports/getPortById'](this.id),
       parent: this.$store.getters['nodes/getNodeById'](this.parentId),
+      radius: 12,
+      width: 100,
+      height: 24
     };
   },
   mounted() {
@@ -39,21 +54,18 @@ export default {
      * attach to
      */
     setAnchorPosition() {
-      const anchorPoint = this.$el.querySelector('.connection-point');
-      const position = anchorPoint.getBoundingClientRect();
 
-      let offsetX = 0;
-
-      if (this.direction === 'outgoing') {
-        offsetX = anchorPoint.clientWidth;
-      }
+      // The position from the node is the top-left edge of the element
+      // Make sure we adjust depending on which direction it's going to
+      // center the edge within the port
+      const offsetX = this.direction === 'outgoing' ? -this.radius : this.radius;
 
       this.$store.commit('ports/setPosition', {
         id: this.id,
         position: {
-          x: position.left + offsetX,
+          x: this.position.x + offsetX,
           // Make sure the we are referencing the center of the anchor point.
-          y: position.top + anchorPoint.clientHeight / 2,
+          y: this.position.y + this.radius,
         },
       });
     },
@@ -141,7 +153,7 @@ export default {
               this.id,
               this.$store.getters['editor/getSelectedPort'](),
           );
-    },
+    }
   },
   watch: {
     // If the parent moves, we need to update our position to
@@ -155,37 +167,23 @@ export default {
 
 <style scoped>
 
-.port {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
+svg > g > text {
+  fill: var(--text-colour);
 }
 
-.port.incoming {
-  justify-content: flex-end;
-  flex-direction: row-reverse;
-}
-
-.port.outgoing {
-  justify-content: flex-end;
-  flex-direction: row;
-}
-
-.port > .connection-point {
-  width: var(--port-size);
-  height: var(--port-size);
-  background: var(--text-colour);
-  border: var(--port-border-size) solid var(--background-light-shade);
-  border-radius: 50%;
+svg > g > circle {
+  fill: var(--text-colour);
+  stroke: var(--background-light-shade);
+  stroke-width: var(--port-border-size);
   cursor: crosshair;
 }
 
-.port.selected > .connection-point {
-  background-color: var(--visual-variant8);
+svg.selected > g > circle {
+  fill: var(--visual-variant8);
 }
 
-.port.matchType > .connection-point {
-  background-color: var(--visual-variant1);
+svg.matchType > g > circle {
+  fill: var(--visual-variant1);
 }
 
 </style>

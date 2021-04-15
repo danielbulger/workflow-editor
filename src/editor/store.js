@@ -1,4 +1,9 @@
 const state = {
+  position: {
+    x: -100,
+    y: 0,
+  },
+  scale: 1,
   selectedEdge: undefined,
   selectedPort: undefined,
   selectedPortType: undefined,
@@ -21,6 +26,15 @@ function clearAllSelections(state) {
 }
 
 const getters = {
+
+  getScale: (state) => () => {
+    return state.scale;
+  },
+
+  getPosition: (state) => () => {
+    return state.position;
+  },
+
   /**
    * Check if there is a currently selected Node.
    * @param {Object} state
@@ -104,6 +118,28 @@ const actions = {};
 const mutations = {
 
   /**
+   *
+   * @param {Object} state
+   * @param {Number} scale
+   */
+  setScale(state, {scale}) {
+    state.scale = scale;
+  },
+
+  /**
+   *
+   * @param {Object} state
+   * @param {Number} x
+   * @param {Number} y
+   */
+  setPosition(state, {x, y}) {
+    state.position = {
+      x: x,
+      y: y,
+    };
+  },
+
+  /**
    * Set the currently selected node to the id given in the payload.
    * @param {Object} state
    * @param  {{id: string, offset: {x: number, y: number}}} payload
@@ -113,7 +149,7 @@ const mutations = {
     state.selectedNode = payload.id;
     state.selectedNodeOffset = {
       x: payload.offset.x,
-      y: -payload.offset.y,
+      y: payload.offset.y,
     };
   },
   /**

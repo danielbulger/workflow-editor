@@ -1,62 +1,95 @@
 <template>
-  <div class="node"
-       :style="{  left: `${this.node.position.x}px`, top: `${this.node.position.y}px`  }"
-       @mousedown.stop="notifySelected">
-    <div class="name-container">
-      <w-text align="center">{{ this.node.name }}</w-text>
-    </div>
 
-    <div class="port-container">
-      <div class="input-ports">
-        <port v-for="portId in this.node.inputs"
-              :id="portId"
-              :parent-id="id"
-              :key="portId"
-              direction="incoming"/>
-      </div>
+  <g :transform="transform"
+     @mousedown.stop="notifySelected">
+    <rect :width="width" :height="height" class="container"></rect>
+    <rect :width="width" :height="headerSize" class="name-container"></rect>
+    <text :x="width / 2" y="35" text-anchor="middle">
+      <tspan>{{ this.node.name }}</tspan>
+    </text>
 
-      <div class="output-ports">
-        <port v-for="portId in this.node.outputs"
-              :id="portId"
-              :key="portId"
-              :parent-id="id"
-              direction="outgoing"/>
-      </div>
-    </div>
-  </div>
+    <g class="input-ports" :transform="`translate(0, ${headerSize + margin})`">
+      <g :transform="`translate(0, ${index * portHeight})`" v-for="(portId, index) in this.node.inputs">
+        <port
+            :id="portId"
+            :parent-id="id"
+            :key="portId"
+            :position="{
+              x: node.position.x,
+              y: node.position.y + (index * portHeight) + headerSize + margin
+            }"
+            direction="incoming"/>
+      </g>
+    </g>
+
+    <g class="output-ports" :transform="`translate(100, ${headerSize + margin})`">
+      <g :transform="`translate(0, ${index * portHeight})`" v-for="(portId, index) in this.node.outputs">
+        <port
+            :id="portId"
+            :parent-id="id"
+            :key="portId"
+            :position="{
+              x: node.position.x + width,
+              y: node.position.y + (index * portHeight) + headerSize + margin
+            }"
+            direction="outgoing"/>
+      </g>
+    </g>
+  </g>
 </template>
 
 <script>
 
-import WText from '@/components/WText.vue';
 import Port from '@/port/Port.vue';
 
 export default {
   name: 'Node.vue',
   components: {
     Port,
-    WText,
   },
   props: [
     'id',
   ],
   data() {
     return {
+      width: 200,
+      headerSize: 50,
+      margin: 10,
+      portHeight: 35,
       node: this.$store.getters['nodes/getNodeById'](this.id),
     };
   },
-  computed: {},
+  computed: {
+    height() {
+      return (this.headerSize + this.margin) + (
+          (Math.max(this.node.inputs.length + this.node.outputs.length) - 1) * this.portHeight
+      );
+    },
+
+    transform() {
+      return `translate(${this.node.position.x}, ${this.node.position.y})`;
+    },
+
+    scale() {
+      return this.$store.getters['editor/getScale']();
+    },
+  },
   methods: {
     /**
      * Notify the store that the node has been selected by the user.
      * @param {MouseEvent} event The mouse-client event
      */
     notifySelected: function(event) {
+
       this.$store.commit('editor/setSelectedNode', {
         id: this.id,
+        // We don't want the transform to snap to the left corner
+        // after moving, so we offset the transform by where the user
+        // has clicked relative to the node so the node stays under
+        // the mouse in the correct spot
         offset: {
-          x: -event.offsetX,
-          y: event.offsetY,
+          x: this.node.position.x - event.x,
+          y: this.node.position.y - event.y,
         },
       });
     },
@@ -65,34 +98,22 @@ export default {
 </script>
 
 <style scoped>
-.node {
-  position: absolute;
-  color: var(--text-colour);
-  background-color: var(--background-lighest-shade);
-  width: var(--node-width);
-  z-index: var(--node-layer);
 
+g {
   cursor: pointer;
   user-select: none;
 }
 
-.name-container {
-  background-color: var(--primary-colour);
+g > .container {
+  fill: var(--background-lighest-shade);
 }
 
-.port-container {
-  display: flex;
-  flex-direction: row;
+g > .name-container {
+  fill: var(--primary-colour);
 }
 
-.port-container .input-ports > *,
-.port-container .output-ports > * {
-  margin-top: var(--port-margin-size);
-  margin-bottom: var(--port-margin-size);
+g > text {
+  fill: var(--text-colour);
+  font-size: 1.5rem;
 }
-
-.port-container > div {
-  width: 50%;
-}
-
 </style>
