@@ -4,11 +4,10 @@
        height="100%"
        tabindex="-1"
        @wheel.prevent.stop="rescale"
-       @mousemove.prevent.stop="moveSelectedNode"
-       @mouseup.prevent.stop="resetSelectedNode"
-       @click.self.prevent.stop="clearSelections"
-       @keydown.self.prevent.stop="handleKeyInput"
-  >
+       @mouseup.prevent.stop="onMouseUp"
+       @mousedown.self.prevent.stop="startPanning"
+       @mousemove.prevent.stop="onMouseMove"
+       @keydown.self.prevent.stop="handleKeyInput">
     <g :transform="transform">
       <g>
         <node v-for="(node, nodeId) in nodes" :id="nodeId" :key="nodeId"/>
@@ -37,7 +36,12 @@ export default {
     return {
       x: 0,
       y: 0,
-      scale: 1
+      scale: 1,
+      panning: false,
+      panX: 0,
+      panY: 0,
+      offsetX: 0,
+      offsetY: 0
     };
   },
 
@@ -76,8 +80,8 @@ export default {
       }
 
       this.scale = newScale;
-      this.x = event.clientX - diffX * newScale;
-      this.y = event.clientY - diffY * newScale;
+      this.x = event.clientX - (diffX + this.offsetX) * newScale;
+      this.y = event.clientY - (diffY + this.offsetY) * newScale;
     },
 
     /**
@@ -106,34 +110,68 @@ export default {
      * @param event The mouse move data.
      */
     moveSelectedNode(event) {
-      if (this.$store.getters['editor/hasSelectedNode']()) {
-        const selectedNode = this.$store.getters['editor/getSelectedNode']();
-        const nodeOffset = this.$store.getters['editor/getSelectedNodeMovementOffset']();
+      const selectedNode = this.$store.getters['editor/getSelectedNode']();
+      const nodeOffset = this.$store.getters['editor/getSelectedNodeMovementOffset']();
 
-        const x = event.clientX + nodeOffset.x;
-        const y = event.clientY + nodeOffset.y;
+      const x = event.clientX + nodeOffset.x;
+      const y = event.clientY + nodeOffset.y;
 
-        this.$store.commit('nodes/move', {
-          id: selectedNode,
-          position: {
-            x: x,
-            y: y,
-          },
-        });
+      this.$store.commit('nodes/move', {
+        id: selectedNode,
+        position: {
+          x: x,
+          y: y,
+        },
+      });
+    },
+
+    onMouseMove(event) {
+      if (this.panning) {
+        this.onPanGraph(event);
+      } else if (this.$store.getters['editor/hasSelectedNode']()) {
+        this.moveSelectedNode(event);
       }
     },
+
+    onMouseUp() {
+      if (this.panning) {
+        this.stopPanning();
+      } else if (this.$store.getters['editor/hasSelectedNode']()) {
+        this.resetSelectedNode();
+      }
+    },
+
     /**
      * Reset the selected node once the mouse has been released.
-     * @param event The mouse click data.
      */
-    resetSelectedNode(event) {
-      if (this.$store.getters['editor/hasSelectedNode']()) {
-        this.$store.commit('editor/clearSelectedNode');
-      }
+    resetSelectedNode() {
+      this.$store.commit('editor/clearSelectedNode');
     },
 
-    clearSelections(event) {
+    clearSelections() {
       this.$store.commit('editor/clearSelections');
+    },
+
+    startPanning(event) {
+      this.clearSelections();
+      this.panX = event.clientX;
+      this.panY = event.clientY;
+      this.panning = true;
+    },
+
+    onPanGraph(event) {
+      const diffX = (event.clientX - this.panX);
+      const diffY = (event.clientY - this.panY);
+      this.offsetX += diffX;
+      this.offsetY += diffY;
+
+      this.panX = event.clientX;
+      this.panY = event.clientY;
+    },
+
+    stopPanning() {
+      this.panning = false;
+      this.panX = this.panY = 0;
     },
   },
 
@@ -155,7 +193,7 @@ export default {
     },
 
     transform() {
-      return `translate(${this.x}, ${this.y}) scale(${this.scale})`;
+      return `translate(${this.x + this.offsetX}, ${this.y + this.offsetY}) scale(${this.scale})`;
     },
   },
 };

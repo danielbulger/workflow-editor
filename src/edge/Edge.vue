@@ -77,7 +77,7 @@ export default {
 path {
   cursor: pointer;
   stroke: var(--text-colour);
-  stroke-width: 0.5rem;
+  stroke-width: 0.3rem;
 }
 
 path.selected {
