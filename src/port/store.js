@@ -84,6 +84,22 @@ const mutations = {
       y: payload.position.y,
     });
   },
+
+  addPorts(state, {ports}) {
+    for (let portKey in ports) {
+      if (ports.hasOwnProperty(portKey)) {
+        Vue.set(state.ports, portKey, ports[portKey]);
+      }
+    }
+  },
+
+  deletePortsById(state, {portIds}) {
+    for (let portKey in portIds) {
+      if (portIds.hasOwnProperty(portKey)) {
+        Vue.delete(state.ports, portKey);
+      }
+    }
+  },
 };
 
 export default {

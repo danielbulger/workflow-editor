@@ -7,6 +7,8 @@ const state = {
     1: {
       from: 3,
       to: 4,
+      fromNode: 1,
+      toNode: 2
     },
   },
 };
@@ -25,7 +27,7 @@ const getters = {
   /**
    * Get all the Edges
    * @param state
-   * @return {function(): Object}}
+   * @return {function(): Object}
    */
   getEdges: (state) => () => {
     return state.edges;
@@ -57,12 +59,14 @@ const actions = {
   /**
    * Creates a new edge with the given data.
    * @param commit
-   * @param {{from: string, to: string}} payload
+   * @param {{from: string, to: string, fromNode, toNode}} payload
    * @return {Promise<void>}
    */
   async create({commit}, payload) {
     try {
-      const result = await EdgeApi.create(payload.from, payload.to);
+      const result = await EdgeApi.create(
+        payload.from, payload.to, payload.fromNode, payload.toNode
+      );
       // Clean up the selections before creating the edge
       commit('editor/clearSelections', null, {root: true});
       commit('create', result);
@@ -77,12 +81,14 @@ const mutations = {
   /**
    * Creates an Edge with the given data.
    * @param state
-   * @param {{id: string, from: string, to:string}} payload
+   * @param {{id: string, from: string, to:string, fromNode, toNode}} payload
    */
   create(state, payload) {
     Vue.set(state.edges, payload.id, {
       from: payload.from,
       to: payload.to,
+      fromNode: payload.fromNode,
+      toNode: payload.toNode
     });
   },
 
@@ -93,6 +99,15 @@ const mutations = {
    */
   deleteById(state, payload) {
     Vue.delete(state.edges, payload.id);
+  },
+
+  deleteByNode(state, {id}) {
+    for (let edgeId in state.edges) {
+      const edge = state.edges[edgeId];
+      if (edge.fromNode == id || edge.toNode == id) {
+        Vue.delete(state.edges, edgeId);
+      }
+    }
   },
 };
 

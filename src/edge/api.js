@@ -9,11 +9,13 @@ export default {
    * @param {string} fromId The outgoing port.
    * @param {string} toId The incoming port.
    */
-  create(fromId, toId) {
+  create(fromId, toId, fromNode, toNode) {
     return Promise.resolve({
       id: Math.trunc(Math.random() * 0xFFFFFF).toString(),
       from: fromId,
       to: toId,
+      fromNode: fromNode,
+      toNode: toNode
     });
   },
 

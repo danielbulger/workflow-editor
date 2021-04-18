@@ -3,7 +3,8 @@
        width="100%"
        height="100%"
        tabindex="-1"
-       @wheel.prevent.stop="rescale"
+       @contextmenu.self.prevent.stop="showAddNodeDialog"
+       @wheel.self.prevent.stop="rescale"
        @mouseup.prevent.stop="onMouseUp"
        @mousedown.self.prevent.stop="startPanning"
        @mousemove.prevent.stop="onMouseMove"
@@ -23,6 +24,7 @@
 
 import Node from '@/node/Node.vue';
 import Edge from '@/edge/Edge.vue';
+import {isRightClick} from '@/input';
 
 export default {
   name: 'Graph',
@@ -38,14 +40,27 @@ export default {
       y: 0,
       scale: 1,
       panning: false,
-      panX: 0,
-      panY: 0,
-      offsetX: 0,
-      offsetY: 0
+      pan: {
+        x: 0,
+        y: 0,
+        offsetX: 0,
+        offsetY: 0,
+      }
     };
   },
 
   methods: {
+
+    screenToGraphCoords(screenX, screenY) {
+
+      let graphX = (-(this.x + this.pan.offsetX) + screenX) / this.scale;
+      let graphY = (-(this.y + this.pan.offsetY) + screenY) / this.scale;
+
+      return {
+        graphX: graphX,
+        graphY: graphY,
+      };
+    },
 
     /**
      * Rescale and translate the canvas on a wheel event.
@@ -80,8 +95,8 @@ export default {
       }
 
       this.scale = newScale;
-      this.x = event.clientX - (diffX + this.offsetX) * newScale;
-      this.y = event.clientY - (diffY + this.offsetY) * newScale;
+      this.x = event.clientX - (diffX + this.pan.offsetX) * newScale;
+      this.y = event.clientY - (diffY + this.pan.offsetY) * newScale;
     },
 
     /**
@@ -153,25 +168,38 @@ export default {
     },
 
     startPanning(event) {
+      if (isRightClick(event)) {
+        return;
+      }
       this.clearSelections();
-      this.panX = event.clientX;
-      this.panY = event.clientY;
+      this.pan.x = event.clientX;
+      this.pan.y = event.clientY;
       this.panning = true;
     },
 
     onPanGraph(event) {
-      const diffX = (event.clientX - this.panX);
-      const diffY = (event.clientY - this.panY);
-      this.offsetX += diffX;
-      this.offsetY += diffY;
+      const diffX = (event.clientX - this.pan.x);
+      const diffY = (event.clientY - this.pan.y);
+      this.pan.offsetX += diffX;
+      this.pan.offsetY += diffY;
 
-      this.panX = event.clientX;
-      this.panY = event.clientY;
+      this.pan.x = event.clientX;
+      this.pan.y = event.clientY;
     },
 
     stopPanning() {
       this.panning = false;
-      this.panX = this.panY = 0;
+      this.pan.x = this.pan.x = 0;
+    },
+
+    showAddNodeDialog(event) {
+
+      const {graphX, graphY} = this.screenToGraphCoords(event.clientX, event.clientY);
+
+      this.$store.commit('nodes/showAddDialog', {
+        x: graphX,
+        y: graphY,
+      });
     },
   },
 
@@ -193,7 +221,7 @@ export default {
     },
 
     transform() {
-      return `translate(${this.x + this.offsetX}, ${this.y + this.offsetY}) scale(${this.scale})`;
+      return `translate(${this.x + this.pan.offsetX}, ${this.y + this.pan.offsetY}) scale(${this.scale})`;
     },
   },
 };

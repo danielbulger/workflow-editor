@@ -6,4 +6,5 @@
  */
 exports.error = function(message, error, ...args) {
   console.error(message, error, JSON.stringify(args));
+  console.error(error.stack);
 };

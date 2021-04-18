@@ -1,5 +1,7 @@
 <template>
   <div id="editor">
+    <delete-node-dialog v-if="showDeleteNodeDialog"></delete-node-dialog>
+    <add-node-dialog v-if="showAddNodeDialog"></add-node-dialog>
     <graph/>
   </div>
 </template>
@@ -7,11 +9,15 @@
 <script>
 
 import Graph from '@/editor/Graph.vue';
+import AddNodeDialog from '@/node/AddNodeDialog';
+import DeleteNodeDialog from '@/node/DeleteNodeDialog';
 
 export default {
   name: 'Editor',
   components: {
-    Graph
+    DeleteNodeDialog,
+    AddNodeDialog,
+    Graph,
   },
   props: [
     'id',
@@ -19,7 +25,16 @@ export default {
   data() {
     return {};
   },
-  computed: {},
+  computed: {
+
+    showDeleteNodeDialog() {
+      return this.$store.getters['nodes/showDeleteDialog']();
+    },
+
+    showAddNodeDialog() {
+      return this.$store.getters['nodes/showAddDialog']();
+    },
+  },
   methods: {},
 };
 </script>

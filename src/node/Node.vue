@@ -1,11 +1,12 @@
 <template>
 
   <g :transform="transform"
-     @mousedown.stop="notifySelected">
+     @mousedown.stop="notifySelected"
+     @contextmenu.prevent.stop="notifyDelete">
     <rect :width="width" :height="height" class="container"></rect>
     <rect :width="width" :height="headerSize" class="name-container"></rect>
     <text :x="width / 2" y="35" text-anchor="middle">
-      <tspan>{{ this.node.name }}</tspan>
+      <tspan>{{ this.node.displayName }}</tspan>
     </text>
 
     <g class="input-ports" :transform="`translate(0, ${headerSize + margin})`">
@@ -22,7 +23,7 @@
       </g>
     </g>
 
-    <g class="output-ports" :transform="`translate(100, ${headerSize + margin})`">
+    <g class="output-ports" :transform="`translate(${width - 100}, ${headerSize + margin})`">
       <g :transform="`translate(0, ${index * portHeight})`" v-for="(portId, index) in this.node.outputs">
         <port
             :id="portId"
@@ -41,6 +42,7 @@
 <script>
 
 import Port from '@/port/Port.vue';
+import {isRightClick} from '@/input';
 
 export default {
   name: 'Node.vue',
@@ -69,17 +71,21 @@ export default {
     transform() {
       return `translate(${this.node.position.x}, ${this.node.position.y})`;
     },
-
-    scale() {
-      return this.$store.getters['editor/getScale']();
-    },
   },
   methods: {
+    notifyDelete() {
+      this.$store.commit('nodes/showDeleteDialog', {
+        id: this.id,
+      });
+    },
     /**
      * Notify the store that the node has been selected by the user.
      * @param {MouseEvent} event The mouse-client event
      */
-    notifySelected: function(event) {
+    notifySelected(event) {
+      if (isRightClick(event)) {
+        return;
+      }
 
       this.$store.commit('editor/setSelectedNode', {
         id: this.id,
@@ -114,6 +120,6 @@ g > .name-container {
 
 g > text {
   fill: var(--text-colour);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 </style>

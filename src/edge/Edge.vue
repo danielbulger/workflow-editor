@@ -15,7 +15,6 @@ export default {
   ],
   data() {
     return {
-      edge: this.$store.getters['edges/getEdgeById'](this.id)
     };
   },
   methods: {
@@ -35,6 +34,10 @@ export default {
     },
   },
   computed: {
+
+    edge() {
+      return this.$store.getters['edges/getEdgeById'](this.id);
+    },
 
     path() {
       const x = this.toPosition.x - this.fromPosition.x;

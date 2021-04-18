@@ -1,6 +1,7 @@
 <template>
 
-  <svg :width="width" :height="height" :class="[{selected: selected, matchType: matchPortType}, direction]">
+  <svg :width="width" :height="height" :class="[{selected: selected, matchType: matchPortType}, direction]"
+       v-if="port != null">
     <g v-if="direction === 'incoming'">
       <circle :r="radius" :cx="radius" :cy="radius"
               @click.prevent.stop="selectPort"
@@ -32,20 +33,26 @@ export default {
     'id',
     'parentId',
     'direction',
-    'position'
+    'position',
   ],
   data() {
     return {
-      port: this.$store.getters['ports/getPortById'](this.id),
       parent: this.$store.getters['nodes/getNodeById'](this.parentId),
       radius: 12,
       width: 100,
-      height: 24
+      height: 24,
     };
   },
+
   mounted() {
-    this.setAnchorPosition();
+    // This may happen when a new node is created
+    // a node is added to the node store before the port
+    // has been added to the port store.
+    if(this.port != null) {
+      this.setAnchorPosition();
+    }
   },
+
   methods: {
 
     /**
@@ -97,9 +104,14 @@ export default {
     },
 
     createEdge() {
+
+      const fromId = this.$store.getters['editor/getSelectedPort']();
+
       this.$store.dispatch('edges/create', {
-        from: this.$store.getters['editor/getSelectedPort'](),
+        from: fromId,
         to: this.id,
+        fromNode: this.$store.getters['ports/getPortById'](fromId).parentId,
+        toNode: this.parentId
       });
     },
 
@@ -127,6 +139,9 @@ export default {
     },
   },
   computed: {
+    port() {
+      return this.$store.getters['ports/getPortById'](this.id);
+    },
     /**
      * Gets the position of the parent node
      * @return {{x: number, y: number}|undefined}
@@ -153,9 +168,12 @@ export default {
               this.id,
               this.$store.getters['editor/getSelectedPort'](),
           );
-    }
+    },
   },
   watch: {
+    port(newValue, oldValue) {
+      this.setAnchorPosition();
+    },
     // If the parent moves, we need to update our position to
     // let anyone following us (such as edges) that we have moved as well.
     parentPosition(newValue, oldValue) {
